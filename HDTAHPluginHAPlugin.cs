@@ -81,6 +81,10 @@ namespace HDTAHPluginHAPlugin
                 returnstr += seperator + id.ToString();
                 seperator = "-";
             }
+            if (returnstr == "") 
+            {
+                returnstr = "-";
+            }
             return returnstr;
         }
 
