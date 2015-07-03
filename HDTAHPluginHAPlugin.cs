@@ -35,7 +35,7 @@ namespace HDTAHPluginHAPlugin
 
         public override Version Version
         {
-            get { return new Version("0.0.1"); }
+            get { return new Version("0.0.3"); }
         }
 
         public HDTAHPluginHAPlugin()
