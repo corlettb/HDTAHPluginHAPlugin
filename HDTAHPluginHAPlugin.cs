@@ -11,6 +11,7 @@ using Newtonsoft.Json.Linq;
 using System.Net;
 using System.Text.RegularExpressions;
 using System.Diagnostics;
+using System.Threading.Tasks;
 
 namespace HDTAHPluginHAPlugin
 {
@@ -113,7 +114,7 @@ namespace HDTAHPluginHAPlugin
             return "http://draft.heartharena.com/arena/option-multi-score/" + heroid + "/" + convertList(pickedcards) + "/" + convertList(cardsToHAIDs(newcards));
         }
 
-        private JObject getHearthAranaData(string url)
+        private async Task<JObject> getHearthAranaData(string url)
         {
             string heartharenadatastr = "";
             using (WebClient wc = new WebClient())
@@ -122,7 +123,7 @@ namespace HDTAHPluginHAPlugin
                 Logger.WriteLine("Making heartharena call to " + url + "...");
                 Stopwatch sw = new Stopwatch();
                 sw.Start();
-                heartharenadatastr = wc.DownloadString(url);
+				heartharenadatastr = await wc.DownloadStringTaskAsync(url);
                 sw.Stop();
                 Logger.WriteLine("... Call took " + sw.ElapsedMilliseconds + "ms");
             }
@@ -132,7 +133,7 @@ namespace HDTAHPluginHAPlugin
             return heartharenadata;
         }
 
-        public override List<string> GetCardValues(ArenaHelper.Plugin.ArenaData arenadata, List<Card> newcards, List<string> defaultvalues)
+        public override async Task<List<string>> GetCardValues(ArenaHelper.Plugin.ArenaData arenadata, List<Card> newcards, List<string> defaultvalues)
         {
             List<string> values = new List<string>();
 
@@ -142,7 +143,7 @@ namespace HDTAHPluginHAPlugin
             
             try
             {
-                heartharenadata = getHearthAranaData(url);
+                heartharenadata = await getHearthAranaData(url);
                 values.Add(heartharenadata["results"][0]["card"]["score"].ToString() + " (" + defaultvalues[0] + ")");
                 values.Add(heartharenadata["results"][1]["card"]["score"].ToString() + " (" + defaultvalues[1] + ")");
                 values.Add(heartharenadata["results"][2]["card"]["score"].ToString() + " (" + defaultvalues[2] + ")");
@@ -164,24 +165,24 @@ namespace HDTAHPluginHAPlugin
             return values;
         }
 
-        public override void NewArena(ArenaHelper.Plugin.ArenaData arenadata)
+        public override async Task NewArena(ArenaHelper.Plugin.ArenaData arenadata)
         {
             Logger.WriteLine("New Arena: " + arenadata.deckname);
             pickedcards.Clear();
         }
 
-        public override void HeroesDetected(ArenaHelper.Plugin.ArenaData arenadata, string heroname0, string heroname1, string heroname2)
+		public override async Task HeroesDetected(ArenaHelper.Plugin.ArenaData arenadata, string heroname0, string heroname1, string heroname2)
         {
             Logger.WriteLine("Heroes Detected: " + heroname0 + ", " + heroname1 + ", " + heroname2);
         }
 
-        public override void HeroPicked(ArenaHelper.Plugin.ArenaData arenadata, string heroname)
+        public override async Task HeroPicked(ArenaHelper.Plugin.ArenaData arenadata, string heroname)
         {
             heroid = Convert.ToInt32(heartharenaheromapping[heroname.ToLower()]);
             Logger.WriteLine("Hero Picked: " + heroname + ", id: " + heroid);
         }
 
-        public override void CardPicked(ArenaHelper.Plugin.ArenaData arenadata, int pickindex, Card card)
+        public override async Task CardPicked(ArenaHelper.Plugin.ArenaData arenadata, int pickindex, Card card)
         {
             Logger.WriteLine("Card Picked: " + card.Name);
             string cardname = card.Name.ToLower();
@@ -192,12 +193,12 @@ namespace HDTAHPluginHAPlugin
             pickedcards.Add(Convert.ToInt32(heartharenacardidmapping[cardname].ToString()));
         }
 
-        public override void Done(ArenaHelper.Plugin.ArenaData arenadata)
+        public override async Task Done(ArenaHelper.Plugin.ArenaData arenadata)
         {
             Logger.WriteLine("Done");
         }
 
-        public override void ResumeArena(ArenaHelper.Plugin.ArenaData arenadata, ArenaHelper.Plugin.PluginState state)
+        public override async Task ResumeArena(ArenaHelper.Plugin.ArenaData arenadata, ArenaHelper.Plugin.PluginState state)
         {
             Logger.WriteLine("Resuming Arena");
 
@@ -229,7 +230,7 @@ namespace HDTAHPluginHAPlugin
             Logger.WriteLine("State: " + ArenaHelper.Plugin.GetState().ToString());
         }
 
-        public override void CloseArena(ArenaHelper.Plugin.ArenaData arenadata, ArenaHelper.Plugin.PluginState state)
+        public override async Task CloseArena(ArenaHelper.Plugin.ArenaData arenadata, ArenaHelper.Plugin.PluginState state)
         {
             Logger.WriteLine("Closing");
         }
